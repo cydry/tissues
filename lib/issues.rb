@@ -1,3 +1,5 @@
+require_relative './issuer.rb'
+
 class MyClient
   def initialize
     @@remote = set_server()
@@ -24,5 +26,17 @@ end
 class Issues < MyClient
   def set_server
     Issuer.new
+  end
+end
+
+class GitHubIssues < Issues
+  def initialize(user, project)
+    @user = user
+    @project = project
+    super()
+  end
+
+  def set_server
+    GitHubIssuer.new(@user, @project)
   end
 end

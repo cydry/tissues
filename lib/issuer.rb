@@ -27,3 +27,19 @@ class Issuer < MyServer
     String.new
   end
 end
+
+class GitHubIssuer < Issuer
+  ISSUES_API =
+    "https://api.github.com/repos/:USER/:PROJECT/issues"
+
+  def initialize(user, project)
+    @uri = ISSUES_API
+             .gsub(/:USER/, user)
+             .gsub(/:PROJECT/, project)
+    super()
+  end
+
+  def build_uri
+    @uri
+  end
+end
