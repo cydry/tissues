@@ -9,7 +9,7 @@ class MyClient
     end
   end
 
-  def fetch(*params)
+  def fetch(params)
     @@response = @@remote.request(params)
   end
 

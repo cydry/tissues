@@ -1,7 +1,7 @@
 require 'net/http'
 
 class MyServer
-  def request(*prams)
+  def request(params)
     nil
   end
 end
@@ -11,7 +11,7 @@ class Issuer < MyServer
     @@uri = URI.parse(build_uri())
   end
 
-  def request(*params)
+  def request(params)
     if @@uri.is_a? URI::Generic
       begin
         Net::HTTP.get(@@uri)
