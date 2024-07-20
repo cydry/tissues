@@ -14,7 +14,7 @@ class Issuer < MyServer
   def request(params)
     if @@uri.is_a? URI::Generic
       begin
-        Net::HTTP.get(@@uri)
+        process(params)
       rescue => e
         puts "Issuer(#{self.class}), #{e.message}"
       end
@@ -25,6 +25,9 @@ class Issuer < MyServer
   # Return URI by string.
   def build_uri
     String.new
+  end
+  def process(params)
+    nil
   end
 end
 
@@ -41,5 +44,29 @@ class GitHubIssuer < Issuer
 
   def build_uri
     @uri
+  end
+
+  def process(params)
+    if params[0] == :get
+      Net::HTTP.get(@@uri)
+    elsif params[0] == :post
+      params.shift()
+      post params
+    end
+  end
+
+  def post(params)
+    data = params.shift
+    cred = params.shift
+
+    req = Net::HTTP::Post.new(@@uri.path)
+    req["Accept"] = "application/vnd.github+json"
+    req["Authorization"] = "Bearer #{cred}"
+    req["X-GitHub-Api-Version"] = "2022-11-28"
+    req.body = JSON.generate(data)
+
+    http = Net::HTTP.new(@@uri.host, @@uri.port)
+    http.use_ssl = true
+    http.start {|http| http.request(req)}
   end
 end
