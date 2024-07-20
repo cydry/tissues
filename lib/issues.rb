@@ -1,4 +1,5 @@
 require_relative './issuer.rb'
+require_relative './formatter.rb'
 
 class MyClient
   def initialize
@@ -30,6 +31,8 @@ class Issues < MyClient
 end
 
 class GitHubIssues < Issues
+  include Formatter::GitHubIssues
+
   def initialize(user, project)
     @user = user
     @project = project
@@ -38,5 +41,9 @@ class GitHubIssues < Issues
 
   def set_server
     GitHubIssuer.new(@user, @project)
+  end
+
+  def to_s
+    pretty get_response()
   end
 end
