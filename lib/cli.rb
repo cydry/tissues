@@ -3,7 +3,9 @@ require_relative './issues.rb'
 
 module CLI
   def self.run
-    opt = OptionParser.new
+    opt = OptionParser.new do |opt|
+      opt.banner = "Usage: tissues <user> <project>"
+    end
     opt.parse!(ARGV)
 
     exit(false) if ARGV.size != 2
