@@ -63,7 +63,7 @@ class GitHubIssuer < Issuer
     req["Accept"] = "application/vnd.github+json"
     req["Authorization"] = "Bearer #{cred}"
     req["X-GitHub-Api-Version"] = "2022-11-28"
-    req.body = JSON.generate(data)
+    req.body = data
 
     http = Net::HTTP.new(@@uri.host, @@uri.port)
     http.use_ssl = true
