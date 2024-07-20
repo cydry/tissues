@@ -2,9 +2,13 @@ require 'json'
 
 module Formatter
   def select_json_list(src_json_str, key_list)
+    data_list = JSON.parse(src_json_str)
+    select_list(data_list, key_list)
+  end
+
+  def select_list(data_list, key_list)
     data = []
-    json_list = JSON.parse(src_json_str)
-    json_list.each do |elem|
+    data_list.each do |elem|
       selected = []
       key_list.each do |key|
         selected << elem[key]
@@ -53,7 +57,12 @@ module Formatter::GitHubIssues
   ALTER_NAMES = {"number" => "no"}
 
   def pretty(issues_src)
-    data = select_json_list(issues_src, HEADER_LIST)
+    issues_list = JSON.parse(issues_src)
+    if issues_list.is_a?(Hash) && (issues_list["message"] == "Not Found")
+      return ""
+    end
+
+    data = select_list(issues_list, HEADER_LIST)
     data_lens = max_lens(data).map{|len| len + 1}
 
     data_list = data.map do |elem|
