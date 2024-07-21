@@ -22,6 +22,7 @@ module CLI
     ghi = GitHubIssues.new(user, project)
 
     if enabled.has_key?(:data)
+      enabled = check_config(enabled)
       exit(false) unless enabled.has_key? :cred
       ghi.credential = enabled[:cred]
       ghi.data = enabled[:data]
@@ -35,5 +36,14 @@ module CLI
   def self.parse_file(filename)
     data = File.read(filename).split("\n\n\n", 2)
     JSON.generate({"title" => data[0],"body" => data[1]})
+  end
+
+  def self.check_config(enabled)
+    unless enabled.has_key? :cred
+      if ENV.has_key? "TISSUES_GHI_TOKEN"
+        enabled[:cred] = ENV["TISSUES_GHI_TOKEN"]
+      end
+    end
+    enabled
   end
 end
