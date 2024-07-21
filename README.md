@@ -5,7 +5,7 @@ A simple issues manager
 ## Usage
 
 ```
-tissues <user> <project> [-k <credential>] [-d <data>]
+tissues <user> <project> [-k <credential>] [-F <file> | -d <data>]
 ```
 
 ## Features
