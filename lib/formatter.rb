@@ -53,16 +53,23 @@ end
 module Formatter::GitHubIssues
   include Formatter
 
-  HEADER_LIST = ["number", "title", "created_at"]
-  ALTER_NAMES = {"number" => "no"}
+  ISSUES_HEADER_LIST = ["number", "title", "created_at"]
+  ISSUES_ALTER_NAMES = {"number" => "no"}
+
+  COMMENTS_HEADER_LIST = ["id", "created_at", "body"]
+  COMMENTS_ALTER_NAMES = {"id" => "COMMENT ID", "created_at" => "CREATED AT", "body" => nil}
 
   def pretty(issues_src)
+    pretty_format(issues_src, ISSUES_HEADER_LIST, ISSUES_ALTER_NAMES)
+  end
+
+  def pretty_format(issues_src, header_target, alter_names)
     issues_list = JSON.parse(issues_src)
     if issues_list.is_a?(Hash) && (issues_list["message"] == "Not Found")
       return ""
     end
 
-    data = select_list(issues_list, HEADER_LIST)
+    data = select_list(issues_list, header_target)
     data_lens = max_lens(data).map{|len| len + 1}
 
     data_list = data.map do |elem|
@@ -76,9 +83,9 @@ module Formatter::GitHubIssues
       end
     end
 
-    header_names = HEADER_LIST.map do |h|
-      if ALTER_NAMES.has_key? h
-        ALTER_NAMES[h]
+    header_names = header_target.map do |h|
+      if alter_names.has_key? h
+        alter_names[h]
       else
         h
       end
@@ -102,5 +109,38 @@ module Formatter::GitHubIssues
       .unshift(sep_line(sep_len))
       .unshift(header_line(header_list))
       .join("\n")
+  end
+
+  def pretty_comments(issues_src)
+    pretty_comments_format(issues_src, COMMENTS_HEADER_LIST, COMMENTS_ALTER_NAMES)
+  end
+
+  def pretty_comments_format(issues_src, header_target, alter_names)
+    issues_list = JSON.parse(issues_src)
+    if issues_list.is_a?(Hash) && (issues_list["message"] == "Not Found")
+      return ""
+    end
+
+    header_names = header_target.map do |h|
+      if alter_names.has_key? h
+        alter_names[h]
+      else
+        h #including nil
+      end
+    end
+
+    data = select_list(issues_list, header_target)
+    data_list = data.map do |elems|
+      joined = ""
+      elems.each_with_index do |elem,i|
+        if header_names[i].nil?
+          joined << "\n#{elem}\n"
+        else
+          joined << "#{header_names[i]}:#{elem}\n"
+        end
+      end
+      joined
+    end
+    data_list.join("\n\n\n")
   end
 end

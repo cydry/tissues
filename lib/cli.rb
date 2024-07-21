@@ -5,7 +5,7 @@ require_relative './issues.rb'
 module CLI
   def self.run
     opt = OptionParser.new do |opt|
-      opt.banner = "Usage: tissues <user> <project> [-k <credential>] [-F <file> | -d <data>]"
+      opt.banner = "Usage: tissues <user> <project> [<number>] [-k <credential>] [-F <file> | -d <data>]"
     end
     enabled = {}
     opt.on('-k CRED') {|cred| enabled[:cred] = cred}
@@ -15,11 +15,12 @@ module CLI
     end
     opt.parse!(ARGV)
 
-    exit(false) if ARGV.size != 2
+    exit(false) if ARGV.size > 3
     user = ARGV[0]
     project = ARGV[1]
+    number = ARGV[2]
 
-    ghi = GitHubIssues.new(user, project)
+    ghi = GitHubIssues.new(user, project, number)
 
     if enabled.has_key?(:data)
       enabled = check_config(enabled)

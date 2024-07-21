@@ -43,18 +43,23 @@ class GitHubIssues < Issues
   include Formatter::GitHubIssues
   attr_accessor :data, :credential
 
-  def initialize(user, project)
+  def initialize(user, project, number=nil)
     @user = user
     @project = project
+    @number = number
     super()
   end
 
   def set_server
-    GitHubIssuer.new(@user, @project)
+    GitHubIssuer.new(@user, @project, @number)
   end
 
   def to_s
-    pretty get_response()
+    if issues?
+      pretty get_response()
+    elsif comments?
+      pretty_comments get_response()
+    end
   end
 
   def fetch
@@ -63,5 +68,13 @@ class GitHubIssues < Issues
 
   def push
     remote_call([:post, @data, @credential])
+  end
+
+  def issues?
+    @number.nil?
+  end
+
+  def comments?
+    not @number.nil?
   end
 end
