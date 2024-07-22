@@ -5,7 +5,7 @@ require_relative './issues.rb'
 module CLI
   def self.run
     opt = OptionParser.new do |opt|
-      opt.banner = "Usage: tissues <user> <project> [<number>] [-k <credential>] [-F <file> | -d <data>]"
+      opt.banner = "Usage: tissues <user> <project> [<number>] [-c] [-k <credential>] [-F <file> | -d <data>]"
     end
     enabled = {}
     opt.on('-k CRED') {|cred| enabled[:cred] = cred}
@@ -13,12 +13,16 @@ module CLI
     opt.on('-F FILE') do |file|
       enabled[:file] = File.read(file)
     end
+    opt.on('-c') do |is_close|
+      enabled[:state] = "closed" if is_close
+    end
     opt.parse!(ARGV)
 
     exit(false) if ARGV.size > 3
     user = ARGV[0]
     project = ARGV[1]
     number = ARGV[2]
+    state = nil
 
     unless enabled[:file].nil?
       if number.nil?
@@ -28,7 +32,12 @@ module CLI
       end
     end
 
-    ghi = GitHubIssues.new(user, project, number)
+    unless enabled[:state].nil?
+      enabled[:data] = closed_state_data()
+      state = enabled[:state]
+    end
+
+    ghi = GitHubIssues.new(user, project, number, state)
 
     if enabled.has_key?(:data)
       enabled = check_config(enabled)
@@ -49,6 +58,10 @@ module CLI
 
   def self.parse_comment_data(data_str)
     JSON.generate({"body" => data_str})
+  end
+
+  def self.closed_state_data
+    '{"state": "closed"}'
   end
 
   def self.check_config(enabled)

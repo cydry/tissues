@@ -35,12 +35,17 @@ class GitHubIssuer < Issuer
   ISSUES_API =
     "https://api.github.com/repos/:USER/:PROJECT/issues"
 
-  def initialize(user, project, number=nil)
+  def initialize(user, project, number=nil, state=nil)
     @uri = ISSUES_API
              .gsub(/:USER/, user)
              .gsub(/:PROJECT/, project)
-
-    @uri += "/#{number}/comments" unless number.nil?
+    unless number.nil?
+      @uri += "/#{number}"
+      if state.nil?
+        # when state is NOT set with "close"
+        @uri += "/comments"
+      end
+    end
     super()
   end
 
@@ -52,16 +57,18 @@ class GitHubIssuer < Issuer
     if params[0] == :get
       Net::HTTP.get(@@uri)
     elsif params[0] == :post
-      params.shift()
-      post params
+      process_push params
+    elsif params[0] == :patch
+      process_push params
     end
   end
 
-  def post(params)
+  def process_push(params)
+    method = params.shift
     data = params.shift
     cred = params.shift
 
-    req = Net::HTTP::Post.new(@@uri.path)
+    req = build_http_request(method)
     req["Accept"] = "application/vnd.github+json"
     req["Authorization"] = "Bearer #{cred}"
     req["X-GitHub-Api-Version"] = "2022-11-28"
@@ -70,5 +77,16 @@ class GitHubIssuer < Issuer
     http = Net::HTTP.new(@@uri.host, @@uri.port)
     http.use_ssl = true
     http.start {|http| http.request(req)}
+  end
+
+  def build_http_request(method)
+    if method == :post
+      Net::HTTP::Post.new(@@uri.path)
+    elsif method == :patch
+      Net::HTTP::Patch.new(@@uri.path)
+    else
+      puts "GitHubIssuer unexpected method:#{method}"
+      exit(false)
+    end
   end
 end

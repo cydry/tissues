@@ -41,17 +41,18 @@ end
 
 class GitHubIssues < Issues
   include Formatter::GitHubIssues
-  attr_accessor :data, :credential
+  attr_accessor :data, :credential, :state
 
-  def initialize(user, project, number=nil)
+  def initialize(user, project, number=nil, state=nil)
     @user = user
     @project = project
     @number = number
+    @state = state
     super()
   end
 
   def set_server
-    GitHubIssuer.new(@user, @project, @number)
+    GitHubIssuer.new(@user, @project, @number, @state)
   end
 
   def to_s
@@ -67,7 +68,7 @@ class GitHubIssues < Issues
   end
 
   def push
-    remote_call([:post, @data, @credential])
+    remote_call([push_method?(), @data, @credential, @state])
   end
 
   def issues?
@@ -76,5 +77,16 @@ class GitHubIssues < Issues
 
   def comments?
     not @number.nil?
+  end
+
+  def push_method?
+    if @state.nil?
+      :post
+    elsif @state == "closed"
+      :patch
+    else
+      puts "GitHubIssues unexpected @state: #{@state}"
+      exit(false)
+    end
   end
 end
