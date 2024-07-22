@@ -9,7 +9,7 @@ tissues <user> <project> [<number>] [-k <credential>] [-F <file> | -d <data>]
 ```
 
 ## Features
-- Reading and Writing GitHub Issues from command line
+- Reading and Writing GitHub Issues/Comments from command line
 
 ## LICENSE
 MIT
