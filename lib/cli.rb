@@ -11,7 +11,7 @@ module CLI
     opt.on('-k CRED') {|cred| enabled[:cred] = cred}
     opt.on('-d DATA') {|data| enabled[:data] = data}
     opt.on('-F FILE') do |file|
-      enabled[:data] = parse_file(file)
+      enabled[:file] = File.read(file)
     end
     opt.parse!(ARGV)
 
@@ -19,6 +19,14 @@ module CLI
     user = ARGV[0]
     project = ARGV[1]
     number = ARGV[2]
+
+    unless enabled[:file].nil?
+      if number.nil?
+        enabled[:data] = parse_issue_data(enabled[:file])
+      else
+        enabled[:data] = parse_comment_data(enabled[:file])
+      end
+    end
 
     ghi = GitHubIssues.new(user, project, number)
 
@@ -34,9 +42,13 @@ module CLI
     end
   end
 
-  def self.parse_file(filename)
-    data = File.read(filename).split("\n\n\n", 2)
+  def self.parse_issue_data(data_str)
+    data = data_str.split("\n\n\n", 2)
     JSON.generate({"title" => data[0],"body" => data[1]})
+  end
+
+  def self.parse_comment_data(data_str)
+    JSON.generate({"body" => data_str})
   end
 
   def self.check_config(enabled)
