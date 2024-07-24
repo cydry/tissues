@@ -10,8 +10,8 @@ module CLI
     enabled = {}
     opt.on('-k CRED') {|cred| enabled[:cred] = cred}
     opt.on('-d DATA') {|data| enabled[:data] = data}
-    opt.on('-F FILE') do |file|
-      enabled[:file] = File.read(file)
+    opt.on('-F [FILE]') do |file|
+      enabled[:file] = read_from_file(file)
     end
     opt.on('-c') do |is_close|
       enabled[:state] = "closed" if is_close
@@ -48,6 +48,14 @@ module CLI
     else
       ghi.fetch
       puts ghi
+    end
+  end
+
+  def self.read_from_file(file)
+    if file.nil?
+      $stdin.read
+    else
+      File.read(file)
     end
   end
 
